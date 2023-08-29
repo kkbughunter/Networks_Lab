@@ -3,7 +3,7 @@
 
 
 # Steps to Build a Network.
-[build a network.webm](https://github.com/KKBUGHUNTER/Networks_Lab/assets/91019132/01f491af-9450-441a-a41a-bfc91019b405)
+[build a network.webm](https://github.com/KKBUGHUNTER/Networks_Lab/assets/91019132/a735d809-9a9d-42a6-8543-dfc247663596)
 
 # Configure the Network
 [Screencast from 29-08-23 06:31:06 PM IST.webm](https://github.com/KKBUGHUNTER/Networks_Lab/assets/91019132/50105fa4-faf6-4f48-bc69-99635b761aa8)
