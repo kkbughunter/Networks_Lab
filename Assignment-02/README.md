@@ -1,3 +1,6 @@
+# Install CISCO Packet Tracer
+[![Watch the video](https://i.ytimg.com/vi/1fZOLSEISSk/maxresdefault.jpg)](https://youtu.be/SfgH7x_lUfs)
+
 ![Screenshot from 2023-08-29 18-18-54](https://github.com/KKBUGHUNTER/Networks_Lab/assets/91019132/3a8323f6-f2ea-48b1-b961-df3ce8104ac5)
 
 
