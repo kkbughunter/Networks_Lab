@@ -1,73 +1,80 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<sys/socket.h>
-#include<sys/types.h>
-#include<netinet/in.h>
-#include <unistd.h>
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h> // read(), write(), close()
+#define MAX 80
+#define PORT 8080
+#define SA struct sockaddr
 
-#define PORT 7020
-#define BUFFER_SIZE 1024
-
-int main(int argv, char *argc[])
+void func(int connfd)
 {
-	int server_socket;
-	int client_socket;
-	struct sockaddr_in server_config;
-	struct sockaddr_in client_config;
-	socklen_t addr_len = sizeof(client_config);
-	char buffer[BUFFER_SIZE];
-	
-	server_socket = socket(AF_INET, SOCK_STREAM, 0); 
-	if(server_socket == -1){
-		perror("cannot create socket");
-		exit(EXIT_FAILURE);
-	}
-	
-	server_config.sin_family = AF_INET;   // which indicates that the socket will be used for IPv4 communication.
-	server_config.sin_port = htons(PORT); // he htons function is used to convert the port number from host byte order to network byte order
-	server_config.sin_addr.s_addr = INADDR_ANY; // INADDR_ANY, indicating that the socket will bind to all available network interfaces
-	
-	if(bind(server_socket,(struct sockaddr *)&server_config, sizeof(server_config)) == -1){
-		perror("Binding Failed");
-		exit(EXIT_FAILURE);
-	}
-	
-	if(listen(server_socket, 5) == -1){
-		perror("Listening Failed");
-		exit(EXIT_FAILURE);
-	}
-	
-	printf("Server Listening on prot %d\n\n", PORT);
-	
-	
-	while(1){
+	char buff[MAX];
+	int n;
+	for (;;) {
+		bzero(buff, MAX);
+
+		read(connfd, buff, sizeof(buff));
 		
-		client_socket = accept(server_socket, (struct sockaddr *)&client_config, &addr_len);
-		if(client_socket == -1){
-			perror("Error in accepting connection");
-			exit(EXIT_FAILURE);
+		printf("From client: %s", buff);
+		//bzero(buff, MAX);
+		//n = 0;
+		//while ((buff[n++] = getchar()) != '\n');
+
+		write(connfd, buff, sizeof(buff));
+
+		if (strncmp("exit", buff, 4) == 0) {
+			printf("Server Exit...\n");
+			break;
 		}
-		
-		int bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0);
-		if (bytes_received == -1) {
-            perror("Receiving failed");
-            exit(EXIT_FAILURE);
-        }
-        
-        buffer[bytes_received] = '\0';
-        
-        send(client_socket, buffer, bytes_received, 0);
-        
-        close(client_socket);
 	}
-	
-	
-	
-	close(server_socket);
-	
-	return 0;
 }
 
+int main()
+{
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
 
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully created..\n");
+	bzero(&servaddr, sizeof(servaddr));
 
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
+
+	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully binded..\n");
+
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	else
+		printf("Server listening..\n");
+	len = sizeof(cli);
+
+	connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
+	}
+	else
+		printf("server accept the client...\n");
+
+	func(connfd);
+
+	close(sockfd);
+}
