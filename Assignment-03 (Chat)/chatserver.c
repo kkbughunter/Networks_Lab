@@ -1,80 +1,60 @@
-#include <stdio.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h> // read(), write(), close()
-#define MAX 80
-#define PORT 8080
-#define SA struct sockaddr
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<arpa/inet.h>
 
-void func(int connfd)
-{
-	char buff[MAX];
-	int n;
-	for (;;) {
-		bzero(buff, MAX);
+void Chat_With_Client(int newfd){
+    char buf[1024];
+    int len = sizeof(buf);
+    while(1){
+        recv(newfd, buf, len, 0);
 
-		read(connfd, buff, sizeof(buff));
-		
-		printf("From client: %s\nEnter the message to send: ", buff);
-		bzero(buff, MAX);
-		n = 0;
-		while ((buff[n++] = getchar()) != '\n');
+        printf("Data: %s\nEnter the message: ",buf);
 
-		write(connfd, buff, sizeof(buff));
+        fgets(buf, len, stdin);
+        buf[len] = '\0';
+        send(newfd, buf, len, 0);
 
-		if (strncmp("exit", buff, 4) == 0) {
-			printf("Server Exit...\n");
-			break;
-		}
-	}
+    }
 }
-
-int main()
+int main(int argc, char *args[])
 {
-	int sockfd, connfd, len;
-	struct sockaddr_in servaddr, cli;
 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		printf("socket creation failed...\n");
-		exit(0);
-	}
-	else
-		printf("Socket successfully created..\n");
-	bzero(&servaddr, sizeof(servaddr));
+    int sockfd, numofclients, newfd;
+    struct sockaddr_in server, client;
+    int len = sizeof(client);
 
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servaddr.sin_port = htons(PORT);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
-		printf("socket bind failed...\n");
-		exit(0);
-	}
-	else
-		printf("Socket successfully binded..\n");
+    server.sin_family = AF_INET;
+    server.sin_port = htons(7020);
+    server.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if ((listen(sockfd, 5)) != 0) {
-		printf("Listen failed...\n");
-		exit(0);
-	}
-	else
-		printf("Server listening..\n");
-	len = sizeof(cli);
+    bind(sockfd, (struct sockaddr *)&server, sizeof(server));
 
-	connfd = accept(sockfd, (SA*)&cli, &len);
-	if (connfd < 0) {
-		printf("server accept failed...\n");
-		exit(0);
-	}
-	else
-		printf("server accept the client...\n");
+    listen(sockfd, 5);
 
-	func(connfd);
+    while(1){
+        newfd = accept(sockfd, (struct sockaddr *)&client, &len);
 
-	close(sockfd);
+        pid_t client_id = fork();
+        if(client_id < 0){
+            printf("fork Failed\n");
+            close(newfd);
+            continue;
+        }
+        else if(client_id == 0){
+            close(sockfd);
+            Chat_With_Client(newfd);
+            return 0;
+        }
+        else{
+            close(newfd);
+        }
+    }
+    close(sockfd);
+    return 0;
 }
