@@ -1,63 +1,54 @@
-#include <arpa/inet.h> // inet_addr()
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h> // bzero()
-#include <sys/socket.h>
-#include <unistd.h> // read(), write(), close()
-#define MAX 80
-#define PORT 8080
-#define SA struct sockaddr
-void func(int sockfd)
-{
-	char buff[MAX];
-	int n;
-	for (;;) {
-		bzero(buff, sizeof(buff));
-		printf("Enter the string : ");
-		n = 0;
-		while ((buff[n++] = getchar()) != '\n');
-		write(sockfd, buff, sizeof(buff));
-		bzero(buff, sizeof(buff));
-		read(sockfd, buff, sizeof(buff));
-		printf("From Server : %s", buff);
-		if ((strncmp(buff, "exit", 4)) == 0) {
-			printf("Client Exit...\n");
-			break;
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<string.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+
+void message_To_Server(int fd){
+	char buf[1024];
+	int len = sizeof(buf);
+	while(1){
+		
+
+		printf("Enter the message: ");
+		fgets(buf, len, stdin);
+		buf[len] = '\0';
+
+		send(fd, buf, len, 0);
+
+		if(strcmp("END",buf) == 0){
+			printf("Server is Disconnected...\n");
+			return ;
 		}
+
+		recv(fd, buf, len, 0);
+		printf("Message from Server: %s\n",buf);
 	}
 }
 
-int main()
+int main(int argc, char *args[])
 {
-	int sockfd, connfd;
-	struct sockaddr_in servaddr, cli;
-
+	
+	int sockfd;
+	struct sockaddr_in client;
+	int len = sizeof(client);
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		printf("socket creation failed...\n");
-		exit(0);
-	}
-	else
-		printf("Socket successfully created..\n");
-	bzero(&servaddr, sizeof(servaddr));
 
+	client.sin_family = AF_INET;
+	client.sin_port = htons(7020);
+	client.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	servaddr.sin_port = htons(PORT);
+	bind(sockfd, (struct sockaddr *)&client, len);
 
-	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr))
-		!= 0) {
-		printf("connection with the server failed...\n");
-		exit(0);
-	}
-	else
-		printf("connected to the server..\n");
+	connect(sockfd, (struct sockaddr *)&client, len);
 
-	func(sockfd);
+	message_To_Server(sockfd);
 
 	close(sockfd);
+
+	return 0;
 }
