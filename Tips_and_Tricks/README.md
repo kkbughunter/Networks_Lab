@@ -1,0 +1,1 @@
+ - Convert Binary to Decimal [code](https://github.com/KKBUGHUNTER/Networks_Lab/Tips_and_Tricks/bin_todec.c)
