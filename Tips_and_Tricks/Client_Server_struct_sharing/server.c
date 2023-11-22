@@ -12,24 +12,25 @@ struct packet{
 	char message[255];
 };
 
-void message_To_Client(int fd){
-	struct packet *p = malloc(sizeof(struct packet));
-	int len = sizeof(p->message);
-	while(1){
-		recv(fd, p->message, len, 0);
-		if(strcmp("END",p->message) == 0){
-			printf("Client is Disconnected...\n");
-			return ;
-		}
+void message_To_Client(int fd) {
+    struct packet *p = malloc(sizeof(struct packet));
+    int packet_size = sizeof(struct packet);
 
-		printf("Message from Client: %s\n",p->message);
+    while(1) {
+        recv(fd, (char *)p, packet_size, 0);
+        if(strcmp("END", p->message) == 0) {
+            printf("Client is Disconnected...\n");
+            return;
+        }
 
-		printf("Enter the message: ");
-		fgets(p->message, len, stdin);
-		p->message[len] = '\0';
+        printf("Message from Client: %s\n", p->message);
 
-		send(fd, p->message, len, 0);
-	}
+        printf("Enter the message: ");
+        fgets(p->message, sizeof(p->message), stdin);
+        p->message[strlen(p->message) - 1] = '\0'; // Removing newline character
+
+        send(fd, (char *)p, packet_size, 0);
+    }
 }
 
 int main(int argc, char *args[])
