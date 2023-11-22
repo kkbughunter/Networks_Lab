@@ -2,6 +2,17 @@
     Install NS2 in Ubuntu
 </div>
 
+## install Automatically 
+```
+sudo apt install ns2
+```
+```
+ns sample.tcl
+```
+
+run the file 
+
+## Install Manually 
 step 1: run the command for Update
 ```
 sudo apt-get update
@@ -19,5 +30,18 @@ step 4: `Extract` the .zib File <br>
 step 5: Move to the .zib extracted folder in my case `Desktop` <br>
 ```
 cd Desktop/ns-2.35
+./configure
+make
+sudo make install
 ```
+step 6: Add your path 
+```
+export NS=/path/to/ns-allinone-2.xx/ns-2.xx/
+export NAM=/path/to/ns-allinone-2.xx/nam-1.xx/
+```
+step 7: Run the tcl file
+```
+ns sample.tcl
+```
+
 
